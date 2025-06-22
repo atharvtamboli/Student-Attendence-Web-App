@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Teacher's Attendance Manager</title>
+    <meta name="theme-color" content="#4facfe">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Attendance Manager">
+    <meta name="description" content="Quick attendance tracking and parent WhatsApp notifications for teachers">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍🏫</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍🏫</text></svg>">
+    <link rel="manifest" href="data:application/json,{
+        &quot;name&quot;: &quot;Teacher's Attendance Manager&quot;,
+        &quot;short_name&quot;: &quot;Attendance&quot;,
+        &quot;description&quot;: &quot;Quick attendance tracking and parent WhatsApp notifications for teachers&quot;,
+        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#667eea&quot;,
+        &quot;theme_color&quot;: &quot;#4facfe&quot;,
+        &quot;orientation&quot;: &quot;portrait&quot;,
+        &quot;icons&quot;: [
+            {
+                &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%234facfe'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👨‍🏫</text></svg>&quot;,
+                &quot;sizes&quot;: &quot;192x192&quot;,
+                &quot;type&quot;: &quot;image/svg+xml&quot;
+            },
+            {
+                &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%234facfe'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👨‍🏫</text></svg>&quot;,
+                &quot;sizes&quot;: &quot;512x512&quot;,
+                &quot;type&quot;: &quot;image/svg+xml&quot;
+            }
+        ]
+    }">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 0; overflow-x: hidden; }
+        .container { width: 100%; min-height: 100vh; background: white; display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 1.8rem; margin-bottom: 5px; font-weight: 700; }
+        .header p { font-size: 0.9rem; opacity: 0.9; }
+        .main-content { flex: 1; padding: 15px; padding-bottom: 80px; }
+        .section { margin-bottom: 20px; background: white; border-radius: 12px; padding: 20px 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border: 1px solid #f0f0f0; }
+        .section h2 { color: #333; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+        .section h2::before { content: ''; width: 3px; height: 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 2px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 0.9rem; }
+        input[type="text"], input[type="tel"], textarea { width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; background: #f8f9fa; font-family: inherit; }
+        textarea { resize: vertical; min-height: 80px; font-size: 14px; }
+        input[type="text"]:focus, input[type="tel"]:focus, textarea:focus { outline: none; border-color: #4facfe; background: white; box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1); }
+        .btn { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 3px 12px rgba(79, 172, 254, 0.3); width: 100%; text-align: center; touch-action: manipulation; }
+        .btn:active { transform: scale(0.98); box-shadow: 0 1px 6px rgba(79, 172, 254, 0.4); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3); }
+        .btn-success { background: linear-gradient(135deg, #51cf66 0%, #69db7c 100%); box-shadow: 0 3px 12px rgba(81, 207, 102, 0.3); font-size: 18px; padding: 16px 20px; }
+        .btn-warning { background: linear-gradient(135deg, #ffa726 0%, #ffcc02 100%); box-shadow: 0 3px 12px rgba(255, 167, 38, 0.3); }
+        .btn-small { padding: 10px 15px; font-size: 14px; width: auto; flex: 1; }
+        .student-list { max-height: 50vh; overflow-y: auto; border: 2px solid #e1e8ff; border-radius: 8px; background: #f8f9ff; -webkit-overflow-scrolling: touch; }
+        .student-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #e1e8ff; transition: all 0.2s ease; cursor: pointer; min-height: 60px; }
+        .student-item:last-child { border-bottom: none; }
+        .student-item:active { background: #f0f4ff; }
+        .student-item.selected { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .student-checkbox { width: 22px; height: 22px; margin-right: 12px; cursor: pointer; accent-color: #4facfe; }
+        .student-info { flex: 1; min-width: 0; }
+        .student-name { font-size: 16px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .student-contact { font-size: 13px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .student-actions { display: flex; gap: 5px; flex-shrink: 0; }
+        .action-btn { width: 35px; height: 35px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .action-btn.edit { background: #4facfe; color: white; }
+        .action-btn.delete { background: #ff6b6b; color: white; }
+        .action-btn:active { transform: scale(0.95); }
+        .quick-actions { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .stats-bar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
+        .stat-number { font-size: 1.6rem; font-weight: bold; display: block; line-height: 1; }
+        .stat-label { font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
+        .message-section { background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); border: none; color: #2d3436; }
+        .message-section h2 { color: #2d3436; }
+        .message-preview { background: rgba(45, 52, 54, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid #2d3436; font-size: 14px; line-height: 1.4; }
+        .selected-info { background: rgba(45, 52, 54, 0.1); padding: 12px; border-radius: 8px; font-weight: 600; text-align: center; margin-bottom: 15px; }
+        .messaging-progress { background: white; border-radius: 12px; padding: 15px; margin-top: 15px; border: 2px solid #4facfe; display: none; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .progress-header h3 { font-size: 1.1rem; }
+        .progress-bar { background: #f0f0f0; border-radius: 8px; height: 8px; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(135deg, #51cf66 0%, #69db7c 100%); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 8px; }
+        .current-student { background: #f8f9ff; padding: 15px; border-radius: 8px; border-left: 3px solid #4facfe; margin-bottom: 15px; }
+        .current-student h4 { margin-bottom: 5px; color: #333; font-size: 1rem; }
+        .current-student p { font-size: 0.9rem; color: #666; }
+        .messaging-actions { display: flex; flex-direction: column; gap: 10px; }
+        .messaging-actions .btn-row { display: flex; gap: 8px; }
+        .empty-state { text-align: center; padding: 30px 15px; color: #888; }
+        .empty-state span { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+        .empty-state h3 { font-size: 1.1rem; margin-bottom: 5px; }
+        .empty-state p { font-size: 0.9rem; }
+        .notification { position: fixed; top: 20px; left: 15px; right: 15px; background: #51cf66; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); z-index: 1000; transform: translateY(-100px); transition: transform 0.3s ease; text-align: center; font-weight: 600; }
+        .notification.show { transform: translateY(0); }
+        .notification.error { background: #ff6b6b; }
+        .install-btn { position: fixed; bottom: 20px; right: 20px; background: #4facfe; color: white; border: none; padding: 12px; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4); z-index: 200; display: none; align-items: center; justify-content: center; font-size: 20px; }
+        .install-btn:active { transform: scale(0.95); }
+        .loading { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .header { padding-top: max(20px, env(safe-area-inset-top)); }
+        .main-content { padding-bottom: max(80px, env(safe-area-inset-bottom) + 80px); }
+        @media screen and (max-width: 768px) {
+            input[type="text"]:focus,
+            input[type="tel"]:focus,
+            textarea:focus {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍🏫 Attendance Manager</h1>
+            <p>Quick attendance & WhatsApp notifications</p>
+        </div>
+        <div class="main-content">
+            <div class="section">
+                <h2>➕ Add Student</h2>
+                <form id="addStudentForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Name</label>
+                        <input type="text" id="studentName" placeholder="Enter student name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactNumber">Parent's WhatsApp Number</label>
+                        <input type="tel" id="contactNumber" placeholder="+91 9876543210" required>
+                    </div>
+                    <button type="submit" class="btn">Add to Class</button>
+                </form>
+            </div>
+            <div class="section">
+                <h2>📝 Message Template</h2>
+                <div class="form-group">
+                    <label for="messageTemplate">Edit your message:</label>
+                    <textarea id="messageTemplate" placeholder="Your message to parents...">Hello! Your child {student_name} was absent from class today ({date}). Please ensure regular attendance for better academic performance.
+
+If there are any concerns, please feel free to contact me.
+
+Thank you,
+[Your Name]
+Teacher</textarea>
+                </div>
+                <div class="message-preview">
+                    <strong>Preview:</strong> <span id="messagePreview"></span>
+                </div>
+            </div>
+            <div class="section">
+                <h2>📋 Today's Attendance</h2>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <span class="stat-number" id="totalStudents">0</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="absentCount">0</span>
+                        <span class="stat-label">Absent</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="presentCount">0</span>
+                        <span class="stat-label">Present</span>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button id="selectAll" class="btn btn-small">Mark All Absent</button>
+                    <button id="clearSelection" class="btn btn-small btn-danger">Clear All</button>
+                    <button id="toggleView" class="btn btn-small">Show Only Absent</button>
+                </div>
+                <div id="studentList" class="student-list">
+                    <div class="empty-state">
+                        <span>📝</span>
+                        <h3>No students yet</h3>
+                        <p>Add students using the form above</p>
+                    </div>
+                </div>
+            </div>
+            <div class="section message-section">
+                <h2>📱 Send WhatsApp</h2>
+                <div class="selected-info">
+                    <span id="selectedCount">0</span> students selected
+                </div>
+                <button id="sendMessages" class="btn btn-success">
+                    📱 Start Messaging
+                </button>
+                <div id="messagingProgress" class="messaging-progress">
+                    <div class="progress-header">
+                        <h3>📱 Sending Messages</h3>
+                        <span id="progressText">0 / 0</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <div id="currentStudent" class="current-student">
+                        <h4>Current: [Student Name]</h4>
+                        <p>📱 [Phone Number]</p>
+                    </div>
+                    <div class="messaging-actions">
+                        <button id="openWhatsApp" class="btn btn-success">
+                            📱 Open WhatsApp
+                        </button>
+                        <div class="btn-row">
+                            <button id="nextStudent" class="btn btn-warning btn-small">
+                                ✅ Next Student
+                            </button>
+                            <button id="skipStudent" class="btn btn-small">
+                                ⏭️ Skip
+                            </button>
+                        </div>
+                        <button id="cancelMessaging" class="btn btn-danger">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="notification" class="notification"></div>
+    <button id="installBtn" class="install-btn">📱</button>
+    <script>
+        const STORAGE_KEYS = {
+            STUDENTS: 'attendance_students',
+            MESSAGE_TEMPLATE: 'attendance_message_template'
+        };
+        let students = [];
+        let selectedStudentIds = new Set();
+        let showOnlyAbsent = false;
+        let messagingQueue = [];
+        let currentMessageIndex = 0;
+        let isMessaging = false;
+        let deferredPrompt;
+        const addStudentForm = document.getElementById('addStudentForm');
+        const studentList = document.getElementById('studentList');
+        const messageTemplate = document.getElementById('messageTemplate');
+        const messagePreview = document.getElementById('messagePreview');
+        const totalStudentsEl = document.getElementById('totalStudents');
+        const absentCountEl = document.getElementById('absentCount');
+        const presentCountEl = document.getElementById('presentCount');
+        const selectedCountEl = document.getElementById('selectedCount');
+        const sendMessagesBtn = document.getElementById('sendMessages');
+        const selectAllBtn = document.getElementById('selectAll');
+        const clearSelectionBtn = document.getElementById('clearSelection');
+        const toggleViewBtn = document.getElementById('toggleView');
+        const notificationEl = document.getElementById('notification');
+        const installBtn = document.getElementById('installBtn');
+        const messagingProgressEl = document.getElementById('messagingProgress');
+        const progressTextEl = document.getElementById('progressText');
+        const progressFillEl = document.getElementById('progressFill');
+        const currentStudentEl = document.getElementById('currentStudent');
+        const openWhatsAppBtn = document.getElementById('openWhatsApp');
+        const nextStudentBtn = document.getElementById('nextStudent');
+        const skipStudentBtn = document.getElementById('skipStudent');
+        const cancelMessagingBtn = document.getElementById('cancelMessaging');
+        function init() {
+            loadFromStorage();
+            registerServiceWorker();
+            setupPWAInstall();
+            renderStudents();
+            updateStats();
+            updateMessagePreview();
+            setupEventListeners();
+        }
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+                localStorage.setItem(STORAGE_KEYS.MESSAGE_TEMPLATE, messageTemplate.value);
+            } catch (error) {
+                showNotification('Error saving data', 'error');
+            }
+        }
+        function loadFromStorage() {
+            try {
+                const savedStudents = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+                if (savedStudents) {
+                    students = JSON.parse(savedStudents);
+                }
+                const savedTemplate = localStorage.getItem(STORAGE_KEYS.MESSAGE_TEMPLATE);
+                if (savedTemplate) {
+                    messageTemplate.value = savedTemplate;
+                }
+            } catch (error) {
+                students = [];
+            }
+        }
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+            const CACHE_NAME = 'attendance-app-v2';
+            const urlsToCache = [
+                '/',
+                '/index.html'
+            ];
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.addAll(urlsToCache))
+                );
+            });
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request)
+                        .then(response => response || fetch(event.request))
+                );
+            });
+        `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl)
+                    .then(() => {})
+                    .catch(err => {});
+            }
+        }
+        function setupPWAInstall() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBtn.style.display = 'flex';
+            });
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        showNotification('App installed successfully! 🎉');
+                    }
+                    deferredPrompt = null;
+                    installBtn.style.display = 'none';
+                }
+            });
+            window.addEventListener('appinstalled', () => {
+                showNotification('App installed! Find it on your home screen');
+                installBtn.style.display = 'none';
+            });
+        }
+        function setupEventListeners() {
+            addStudentForm.addEventListener('submit', handleAddStudent);
+            messageTemplate.addEventListener('input', () => {
+                updateMessagePreview();
+                saveToStorage();
+            });
+            selectAllBtn.addEventListener('click', () => {
+                students.forEach(student => selectedStudentIds.add(student.id));
+                renderStudents();
+                updateStats();
+            });
+            clearSelectionBtn.addEventListener('click', () => {
+                selectedStudentIds.clear();
+                renderStudents();
+                updateStats();
+            });
+            toggleViewBtn.addEventListener('click', () => {
+                showOnlyAbsent = !showOnlyAbsent;
+                toggleViewBtn.textContent = showOnlyAbsent ? 'Show All' : 'Show Only Absent';
+                renderStudents();
+            });
+            sendMessagesBtn.addEventListener('click', handleStartMessaging);
+            openWhatsAppBtn.addEventListener('click', handleOpenWhatsApp);
+            nextStudentBtn.addEventListener('click', handleNextStudent);
+            skipStudentBtn.addEventListener('click', handleSkipStudent);
+            cancelMessagingBtn.addEventListener('click', handleCancelMessaging);
+        }
+        function handleAddStudent(e) {
+            e.preventDefault();
+            const name = document.getElementById('studentName').value.trim();
+            const contact = document.getElementById('contactNumber').value.trim();
+            if (!name || !contact) return;
+            const cleanContact = contact.replace(/[^0-9+]/g, '');
+            const student = {
+                id: Date.now(),
+                name: name,
+                contact: cleanContact
+            };
+            students.push(student);
+            saveToStorage();
+            addStudentForm.reset();
+            renderStudents();
+            updateStats();
+            showNotification(`${name} added! 👍`);
+        }
+        function updateMessagePreview() {
+            const template = messageTemplate.value;
+            const preview = template
+                .replace('{student_name}', '[Student Name]')
+                .replace('{date}', new Date().toLocaleDateString());
+            messagePreview.textContent = preview;
+        }
+        function renderStudents() {
+            if (students.length === 0) {
+                studentList.innerHTML = `
+                    <div class="empty-state">
+                        <span>📝</span>
+                        <h3>No students yet</h3>
+                        <p>Add students using the form above</p>
+                    </div>
+                `;
+                return;
+            }
+            let studentsToShow = students;
+            if (showOnlyAbsent) {
+                studentsToShow = students.filter(s => selectedStudentIds.has(s.id));
+            }
+            studentList.innerHTML = studentsToShow.map(student => `
+                <div class="student-item ${selectedStudentIds.has(student.id)
+                ? 'selected' : ''}" onclick="toggleStudentSelection(${student.id})">
+                    <input type="checkbox" class="student-checkbox" ${selectedStudentIds.has(student.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleStudentSelection(${student.id})">
+                    <div class="student-info">
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-contact">${student.contact}</div>
+                    </div>
+                    <div class="student-actions">
+                        <button class="action-btn edit" onclick="event.stopPropagation(); editStudent(${student.id})" title="Edit">✏️</button>
+                        <button class="action-btn delete" onclick="event.stopPropagation(); deleteStudent(${student.id})" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        window.toggleStudentSelection = function(studentId) {
+            if (selectedStudentIds.has(studentId)) {
+                selectedStudentIds.delete(studentId);
+            } else {
+                selectedStudentIds.add(studentId);
+            }
+            renderStudents();
+            updateStats();
+        }
+        window.editStudent = function(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            const newName = prompt('Enter new name:', student.name);
+            if (!newName || newName.trim() === '') return;
+            const newContact = prompt('Enter new contact:', student.contact);
+            if (!newContact || newContact.trim() === '') return;
+            student.name = newName.trim();
+            student.contact = newContact.trim().replace(/[^0-9+]/g, '');
+            saveToStorage();
+            renderStudents();
+            showNotification('Student updated! ✅');
+        }
+        window.deleteStudent = function(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            if (confirm(`Delete ${student.name}?`)) {
+                students = students.filter(s => s.id !== studentId);
+                selectedStudentIds.delete(studentId);
+                saveToStorage();
+                renderStudents();
+                updateStats();
+                showNotification('Student deleted! 🗑️');
+            }
+        }
+        function updateStats() {
+            const total = students.length;
+            const absent = selectedStudentIds.size;
+            const present = total - absent;
+            totalStudentsEl.textContent = total;
+            absentCountEl.textContent = absent;
+            presentCountEl.textContent = present;
+            selectedCountEl.textContent = absent;
+            sendMessagesBtn.disabled = absent === 0;
+            if (absent === 0) {
+                sendMessagesBtn.innerHTML = '📱 Select students to message';
+            } else {
+                sendMessagesBtn.innerHTML = `📱 Send to ${absent} parent${absent > 1 ? 's' : ''}`;
+            }
+        }
+        function handleStartMessaging() {
+            if (selectedStudentIds.size === 0) {
+                showNotification('Please select students first', 'error');
+                return;
+            }
+            messagingQueue = students.filter(s => selectedStudentIds.has(s.id));
+            currentMessageIndex = 0;
+            isMessaging = true;
+            messagingProgressEl.style.display = 'block';
+            updateMessagingProgress();
+            showNotification('Sequential messaging started! 📱');
+        }
+        function updateMessagingProgress() {
+            if (messagingQueue.length === 0) return;
+            const progress = (currentMessageIndex / messagingQueue.length) * 100;
+            progressFillEl.style.width = `${progress}%`;
+            progressTextEl.textContent = `${currentMessageIndex} / ${messagingQueue.length}`;
+            if (currentMessageIndex < messagingQueue.length) {
+                const currentStudent = messagingQueue[currentMessageIndex];
+                currentStudentEl.innerHTML = `
+                    <h4>Current: ${currentStudent.name}</h4>
+                    <p>📱 ${currentStudent.contact}</p>
+                `;
+                openWhatsAppBtn.disabled = false;
+            } else {
+                handleMessagingComplete();
+            }
+        }
+        function handleOpenWhatsApp() {
+            if (currentMessageIndex >= messagingQueue.length) return;
+            const student = messagingQueue[currentMessageIndex];
+            const message = messageTemplate.value
+                .replace('{student_name}', student.name)
+                .replace('{date}', new Date().toLocaleDateString());
+            const encodedMessage = encodeURIComponent(message);
+            let whatsappUrl;
+            let phone = student.contact.replace(/[^0-9]/g, '');
+            if (phone.startsWith('91') && phone.length === 12) {
+                phone = phone;
+            } else if (phone.length === 10) {
+                phone = '91' + phone;
+            }
+            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                whatsappUrl = `whatsapp://send?phone=${phone}&text=${encodedMessage}`;
+            } else {
+                whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+            }
+            window.open(whatsappUrl, '_blank');
+        }
+        function handleNextStudent() {
+            currentMessageIndex++;
+            updateMessagingProgress();
+            if (currentMessageIndex >= messagingQueue.length) {
+                handleMessagingComplete();
+            }
+        }
+        function handleSkipStudent() {
+            showNotification(`Skipped ${messagingQueue[currentMessageIndex].name}`);
+            handleNextStudent();
+        }
+        function handleCancelMessaging() {
+            if (confirm('Cancel messaging? Progress will be lost.')) {
+                resetMessaging();
+                showNotification('Messaging cancelled');
+            }
+        }
+        function handleMessagingComplete() {
+            showNotification('All messages sent! 🎉');
+            setTimeout(() => {
+                resetMessaging();
+            }, 2000);
+        }
+        function resetMessaging() {
+            isMessaging = false;
+            messagingQueue = [];
+            currentMessageIndex = 0;
+            messagingProgressEl.style.display = 'none';
+            progressFillEl.style.width = '0%';
+        }
+        function showNotification(message, type = 'success') {
+            notificationEl.textContent = message;
+            notificationEl.className = `notification ${type}`;
+            notificationEl.classList.add('show');
+            setTimeout(() => {
+                notificationEl.classList.remove('show');
+            }, 3000);
+        }
+        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && isMessaging) {
+                updateMessagingProgress();
+            }
+        });
+        window.addEventListener('beforeunload', (e) => {
+            if (isMessaging) {
+                e.preventDefault();
+                e.returnValue = 'Messaging in progress. Are you sure you want to leave?';
+            }
+        });
+    </script>
+</body>
+</html>
